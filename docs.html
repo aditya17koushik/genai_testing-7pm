@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Zero to Hero: Interactive Course</title>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-sidebar: #1e293b;
+            --bg-card: #1e293b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #7dd3fc;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --border: #334155;
+            --code-bg: #0b0f19;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* App Layout */
+        #sidebar {
+            width: 300px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        #main-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            padding: 2rem 4rem;
+            position: relative;
+        }
+
+        /* Search & Progress Headers */
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.25rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 0.6rem;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: white;
+            outline: none;
+        }
+
+        .progress-container {
+            padding: 1rem 1.5rem;
+            background: rgba(56, 189, 248, 0.05);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        /* Nav Menu Links */
+        .nav-menu {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem 0;
+        }
+
+        .day-group {
+            margin-bottom: 0.5rem;
+        }
+
+        .day-title {
+            padding: 0.5rem 1.5rem;
+            font-weight: bold;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.02);
+        }
+
+        .day-title:hover {
+            color: white;
+        }
+
+        .sub-items {
+            list-style: none;
+            padding-left: 1.5rem;
+        }
+
+        .sub-items li a {
+            display: block;
+            padding: 0.4rem 1.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-left: 2px solid transparent;
+        }
+
+        .sub-items li a:hover, .sub-items li a.active {
+            color: var(--accent);
+            border-left-color: var(--accent);
+            background: rgba(56, 189, 248, 0.03);
+        }
+
+        /* Content Render Elements */
+        .content-section {
+            display: none;
+            max-width: 900px;
+            margin: 0 auto;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 { font-size: 2.5rem; margin-bottom: 1rem; color: var(--accent); }
+        h2 { font-size: 1.8rem; margin: 2rem 0 1rem 0; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        h3 { font-size: 1.3rem; margin: 1.5rem 0 0.5rem 0; color: var(--accent-hover); }
+        p { margin-bottom: 1rem; line-height: 1.7; color: #cbd5e1; }
+
+        /* Pedagogical Block Grids */
+        .pedagogy-block {
+            background: var(--bg-card);
+            border-left: 4px solid var(--accent);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .pedagogy-block.mistake { border-left-color: var(--danger); background: rgba(248, 113, 113, 0.03); }
+        .pedagogy-block.analogy { border-left-color: var(--warning); background: rgba(251, 191, 36, 0.03); }
+        .pedagogy-block.assignment { border-left-color: var(--success); background: rgba(52, 211, 153, 0.03); }
+
+        .block-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Interactive Memory Visualization Elements */
+        .memory-visualizer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 2rem;
+            background: #0b0f19;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .mem-box {
+            background: var(--bg-sidebar);
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            text-align: center;
+            min-width: 100px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .mem-box.variable { border-color: var(--accent); }
+        .mem-box.address { border-color: var(--warning); font-family: monospace; font-size: 0.8rem; }
+        .mem-box.object { border-color: var(--success); }
+
+        .mem-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .mem-val {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .mem-arrow {
+            font-size: 1.5rem;
+            color: var(--accent);
+            user-select: none;
+        }
+
+        /* Code Blocks & Execution Simulator */
+        .code-container {
+            position: relative;
+            background: var(--code-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin: 1rem 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .copy-btn:hover {
+            color: white;
+            border-color: var(--accent);
+        }
+
+        pre {
+            padding: 1rem;
+            overflow-x: auto;
+            color: #e2e8f0;
+        }
+
+        .keyword { color: #f472b6; font-weight: bold; }
+        .function { color: #38bdf8; }
+        .string { color: #34d399; }
+        .number { color: #fbbf24; }
+        .comment { color: #64748b; font-style: italic; }
+
+        .execution-box {
+            background: #111827;
+            border: 1px dashed var(--accent);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .execution-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .exec-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            opacity: 0.5;
+            transition: all 0.3s;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .exec-step.active {
+            opacity: 1;
+            background: rgba(56, 189, 248, 0.08);
+            border-left: 3px solid var(--accent);
+        }
+
+        /* Next / Prev Navigation Row */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .nav-route-btn {
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .nav-route-btn:hover {
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, 0.05);
+        }
+
+        /* Interactive Checklist and Interactive Output Triggers */
+        .interactive-output-trigger {
+            background: var(--accent);
+            color: var(--bg-main);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+        .interactive-output-trigger:hover { background: var(--accent-hover); }
+        .live-output-display {
+            background: #000;
+            color: #0f0;
+            padding: 0.75rem;
+            font-family: monospace;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        /* Responsive Design */
+        @media(max-width: 768px) {
+            body { flex-direction: column; }
+            #sidebar { width: 100%; height: auto; max-height: 400px; }
+            #main-content { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <h2>🐍 Python Zero to Hero</h2>
+            <input type="text" id="search-input" class="search-box" placeholder="Search concept or keyword...">
+        </div>
+        <div class="progress-container">
+            <span style="font-size: 0.85rem; color: var(--text-muted)">Course Progress</span>
+            <div class="progress-bar-bg"><div id="course-progress" class="progress-bar-fill"></div></div>
+        </div>
+        <div class="nav-menu" id="nav-menu-container">
+            </div>
+    </div>
+
+    <div id="main-content">
+        
+        <div id="day1" class="content-section active">
+            <h1>Day 1: Programming Basics, Variables & Primitive Numbers</h1>
+            <p>Welcome to your first step in programming! Today, you'll write your very first line of automated text and understand how your computer stores information from scratch.</p>
+
+            <h2>1. What is Programming & Python?</h2>
+            <div class="pedagogy-block analogy">
+                <div class="block-title">💡 Real-World Analogy</div>
+                Imagine you are training a highly efficient, ultra-obedient butler. The butler does exactly what you say, but understands absolutely no nuance. You must write recipes or rules down precisely in a language you both understand. That language is <strong>Python</strong>, and the recipe book is your <strong>Program</strong>.
+            </div>
+
+            <h2>2. The print() Function</h2>
+            <p>The <code>print()</code> function instructs your system to output alphanumeric characters to the visual console window.</p>
+            
+            <div class="code-container">
+                <div class="code-header"><span>example_print.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><span class="keyword">print</span>(<span class="string">"Hello, future engineer!"</span>)</pre>
+            </div>
+            <button class="interactive-output-trigger" onclick="toggleOutput('out-print1')">Run Code & View Output</button>
+            <div id="out-print1" class="live-output-display">Hello, future engineer!</div>
+
+            <h2>3. Variables and Primitive Memory Concepts</h2>
+            <p>Variables act as labeled tags pointing to concrete allocations inside physical random-access memory hardware cells.</p>
+
+            <h3>Visual Memory Structure: <code>age = 25</code></h3>
+            <div class="memory-visualizer">
+                <div class="mem-box variable">
+                    <div class="mem-label">Variable Label</div>
+                    <div class="mem-val">age</div>
+                </div>
+                <div class="mem-arrow">➡️</div>
+                <div class="mem-box address">
+                    <div class="mem-label">Memory Reference</div>
+                    <div class="mem-val">0x7FFF21A0</div>
+                </div>
+                <div class="mem-arrow">➡️</div>
+                <div class="mem-box object">
+                    <div class="mem-label">Data Object (int)</div>
+                    <div class="mem-val">25</div>
+                </div>
+            </div>
+
+            <h3>Visual Memory Structure (Float): <code>price = 19.99</code></h3>
+            <div class="memory-visualizer">
+                <div class="mem-box variable">
+                    <div class="mem-label">Variable Label</div>
+                    <div class="mem-val">price</div>
+                </div>
+                <div class="mem-arrow">➡️</div>
+                <div class="mem-box address">
+                    <div class="mem-label">Memory Reference</div>
+                    <div class="mem-val">0x7FFF21B4</div>
+                </div>
+                <div class="mem-arrow">➡️</div>
+                <div class="mem-box object">
+                    <div class="mem-label">Data Object (float)</div>
+                    <div class="mem-val">19.99</div>
+                </div>
+            </div>
+
+            <div class="pedagogy-block mistake">
+                <div class="block-title">❌ Common Beginner Error</div>
+                Writing variable naming declarations with spacing attributes or leading numbers: <br>
+                <code>1st_number = 10</code> or <code>my number = 10</code>. <br>
+                <strong>Correction:</strong> Always use snake_case structural formats: <code>first_number = 10</code> or <code>my_number = 10</code>.
+            </div>
+
+            <div class="pedagogy-block assignment">
+                <div class="block-title">📝 Day 1 Assignment Challenge</div>
+                Create three discrete variables: an integer holding your birth year, a float holding your favorite fractional value, and verify their underlying structural types using <code>print(type(variable_name))</code>.
+            </div>
+        </div>
+
+        <div id="day2" class="content-section">
+            <h1>Day 2: Sequences — Strings, Lists & Tuples</h1>
+            <p>Sequences store multiple values or text components sequentially, preserving structural item positions.</p>
+            
+            <h2>1. Textual Data (Strings)</h2>
+            <div class="pedagogy-block analogy">
+                <div class="block-title">💡 Real-World Analogy</div>
+                Think of a Python String like a beaded bracelet. Each letter is a specific bead, and each bead is assigned an exact index number stamped directly below it, beginning strictly at zero.
+            </div>
+
+            <h3>Visual Memory Structure: <code>name = "Bob"</code></h3>
+            <div class="memory-visualizer">
+                <div class="mem-box variable">
+                    <div class="mem-label">Variable</div>
+                    <div class="mem-val">name</div>
+                </div>
+                <div class="mem-arrow">➡️</div>
+                <div class="mem-box object">
+                    <div class="mem-label">String Memory Sequence</div>
+                    <div class="mem-val">['B': Index 0] -> ['o': Index 1] -> ['b': Index 2]</div>
+                </div>
+            </div>
+
+            <h2>2. Lists and Tuples (Mutable vs Immutable)</h2>
+            <p><strong>Lists</strong> are mutable linear arrays that can dynamic-resize, whereas <strong>Tuples</strong> are fixed structural sequences locked instantly upon creation.</p>
+
+            <div class="code-container">
+                <div class="code-header"><span>sequences.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><span class="comment"># Lists use square brackets</span>
+shopping_list = [<span class="string">"Apple"</span>, <span class="string">"Banana"</span>]
+shopping_list.append(<span class="string">"Cherry"</span>)
+
+<span class="comment"># Tuples use parentheses</span>
+coordinates = (<span class="number">40.7128</span>, <span class="number">74.0060</span>)</pre>
+            </div>
+
+            <div class="pedagogy-block mistake">
+                <div class="block-title">❌ Common Beginner Error</div>
+                Attempting to mutate an active structural tuple element reference: <br>
+                <code>coordinates[0] = 50.0</code> <br>
+                <strong>Result:</strong> Python throws an immediate explicit crash: <code>TypeError: 'tuple' object does not support item assignment</code>.
+            </div>
+
+            <div class="pedagogy-block assignment">
+                <div class="block-title">📝 Day 2 Assignment Challenge</div>
+                Construct an ordered collection containing your top 3 target career skills inside a list. Append one modern framework dynamically using <code>.append()</code>, and reverse slice the sequence completely using index parameters: <code>[::-1]</code>.
+            </div>
+        </div>
+
+        <div id="day3" class="content-section">
+            <h1>Day 3: Key-Value Architectures — Dictionaries & Sets</h1>
+            <p>Today we discover complex configurations allowing blazing-fast lookup mechanics without indexing offsets.</p>
+
+            <h2>1. Dictionaries</h2>
+            <div class="pedagogy-block analogy">
+                <div class="block-title">💡 Real-World Analogy</div>
+                Imagine an actual traditional vocabulary booklet. You don't scan sequentially from page 1 to locate an entry. You jump directly to the exact keyword token to instantly extract the definition string.
+            </div>
+
+            <h3>Visual Memory Structure: <code>user = {"id": 9}</code></h3>
+            <div class="memory-visualizer">
+                <div class="mem-box variable">
+                    <div class="mem-label">Variable</div>
+                    <div class="mem-val">user</div>
+                </div>
+                <div class="mem-arrow">➡️</div>
+                <div class="mem-box object">
+                    <div class="mem-label">Dictionary Hash Storage</div>
+                    <div class="mem-val">Key: "id" ──➡️ Value: 9</div>
+                </div>
+            </div>
+
+            <h2>2. Sets</h2>
+            <p>Sets are completely unordered collections of unique elements that instantly filter duplicate entries.</p>
+
+            <div class="code-container">
+                <div class="code-header"><span>set_demo.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre>numbers_set = {<span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">3</span>}
+<span class="keyword">print</span>(numbers_set) <span class="comment"># Displays only unique outputs: {1, 2, 3}</span></pre>
+            </div>
+
+            <div class="pedagogy-block assignment">
+                <div class="block-title">📝 Day 3 Assignment Challenge</div>
+                Create a employee dictionary entry detailing tracking indices for "name", "role", and "salary". Print only the keys using the built-in dictionary extraction method.
+            </div>
+        </div>
+
+        <div id="day4" class="content-section">
+            <h1>Day 4: Logic Controls & Conditional Branches</h1>
+            <p>Make your Python applications execute intelligently based on conditional statements and inputs.</p>
+
+            <h2>1. Execution Flow Simulation</h2>
+            <div class="execution-box">
+                <div class="block-title" style="color:var(--accent);">⚡ Program Step Execution Simulator</div>
+                <div class="execution-steps">
+                    <div id="d4s1" class="exec-step active"><strong>Step 1:</strong> Evaluate condition expression (e.g., balance &gt; cost)</div>
+                    <div id="d4s2" class="exec-step"><strong>Step 2:</strong> Branch evaluates to boolean True object state</div>
+                    <div id="d4s3" class="exec-step"><strong>Step 3:</strong> Execute code inside the indent scope; bypass explicit else blocks</div>
+                </div>
+                <button class="interactive-output-trigger" style="margin-top:1rem;" onclick="simulateDay4Step()">Advance Execution Simulator Step</button>
+            </div>
+
+            <div class="code-container">
+                <div class="code-header"><span>conditional_branch.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><span class="keyword">if</span> score &gt;= <span class="number">90</span>:
+    <span class="keyword">print</span>(<span class="string">"Grade A"</span>)
+<span class="keyword">elif</span> score &gt;= <span class="number">70</span>:
+    <span class="keyword">print</span>(<span class="string">"Grade B"</span>)
+<span class="keyword">else</span>:
+    <span class="keyword">print</span>(<span class="string">"Retake Required"</span>)</pre>
+            </div>
+
+            <div class="pedagogy-block mistake">
+                <div class="block-title">❌ Common Beginner Error</div>
+                Forgetting the structural syntax colon character (<code>:</code>) at the end of decision declarations, or breaking code block indentation structure.
+            </div>
+
+            <div class="pedagogy-block assignment">
+                <div class="block-title">📝 Day 4 Assignment Challenge</div>
+                Write a checking script that processes an evaluation input number, and displays "Positive", "Negative", or "Zero" accurately using combinations of if, elif, and else statements.
+            </div>
+        </div>
+
+        <div id="day5" class="content-section">
+            <h1>Day 5: Iteration Frameworks — While & For Loops</h1>
+            <p>Automate repetitive operational procedures smoothly without duplicating source files manual lines.</p>
+
+            <h2>1. For Loops & Ranges</h2>
+            <p>The <code>for</code> statement steps through items in any sequential data structure, moving item-by-item in order.</p>
+
+            <div class="code-container">
+                <div class="code-header"><span>loop_output.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><span class="keyword">for</span> iteration_index <span class="keyword">in</span> <span class="function">range</span>(<span class="number">3</span>):
+    <span class="keyword">print</span>(<span class="string">"Looping iteration sequence number:"</span>, iteration_index)</pre>
+            </div>
+            <button class="interactive-output-trigger" onclick="toggleOutput('out-day5')">Run Iteration Script</button>
+            <div id="out-day5" class="live-output-display">Looping iteration sequence number: 0<br>Looping iteration sequence number: 1<br>Looping iteration sequence number: 2</div>
+
+            <div class="pedagogy-block mistake">
+                <div class="block-title">❌ Common Beginner Error</div>
+                Creating an unintended runaway infinite loop while implementing a while structure by omitting structural counters: <br>
+                <code>while x &lt; 5: print(x)</code> (where x never increments). This consumes system computing resources indefinitely until forced to quit.
+            </div>
+
+            <div class="pedagogy-block assignment">
+                <div class="block-title">📝 Day 5 Assignment Challenge</div>
+                Construct an integer looping pattern that outputs all mathematical even values ranging between 2 and 20 using step features native within <code>range()</code> functions.
+            </div>
+        </div>
+
+        <div id="day6" class="content-section">
+            <h1>Day 6: Modular Functions & Reusable Blocks</h1>
+            <p>Bundle repeating functional sequences into clean, named blocks to keep your code organized and maintainable.</p>
+
+            <h2>1. Defining and Triggering Block Routines</h2>
+            <p>Functions take inputs (arguments), run their inner block logic, and send back a result using a <code>return</code> statement.</p>
+
+            <div class="code-container">
+                <div class="code-header"><span>function_blueprint.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><span class="keyword">def</span> <span class="function">calculate_tax</span>(subtotal, tax_rate=<span class="number">0.10</span>):
+    <span class="keyword">return</span> subtotal * tax_rate
+
+final_tax = calculate_tax(<span class="number">200</span>)</pre>
+            </div>
+
+            <div class="pedagogy-block analogy">
+                <div class="block-title">💡 Real-World Analogy</div>
+                Think of a function like an automatic juice extractor machine. You insert raw input materials (arguments like apples), the closed system handles the processing work inside, and it outputs a clean, ready-to-use product (the return value).
+            </div>
+
+            <div class="pedagogy-block assignment">
+                <div class="block-title">📝 Day 6 Assignment Challenge</div>
+                Write a function called <code>convert_temperature(celsius)</code> that transforms temperature values to Fahrenheit using the formula: $F = C \times 1.8 + 32$. Return the resulting calculation.
+            </div>
+        </div>
+
+        <div id="day7" class="content-section">
+            <h1>Day 7: File I/O — Storing Data Locally</h1>
+            <p>Learn how to save information permanently to local disk files so your data isn't lost when your script stops running.</p>
+
+            <h2>1. Safe Resource Management With Context Management Blocks</h2>
+            <p>Always use the <code>with open()</code> structural keyword system block. This context manager guarantees that your data streams safely close automatically, even if your program crashes mid-execution.</p>
+
+            <div class="code-container">
+                <div class="code-header"><span>file_writer.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><span class="with">with</span> <span class="function">open</span>(<span class="string">"records.txt"</span>, <span class="string">"w"</span>) <span class="keyword">as</span> external_file:
+    external_file.write(<span class="string">"Persistent operational log text stream line.\n"</span>)</pre>
+            </div>
+
+            <div class="pedagogy-block assignment">
+                <div class="block-title">📝 Day 7 Assignment Challenge</div>
+                Write a routine script that loops over a list of items and saves each line into an external file called <code>inventory.txt</code>. Then, read it back and print the content directly to your console.
+            </div>
+        </div>
+
+        <div id="day8" class="content-section">
+            <h1>Day 8: Exception Handling — Designing Crash-Resilient Code</h1>
+            <p>Prevent sudden application crashes by intercepting predictable operational runtime errors smoothly.</p>
+
+            <h2>1. Try-Except Fault Interception Logic Flow</h2>
+            <div class="code-container">
+                <div class="code-header"><span>safe_division.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><span class="keyword">try</span>:
+    calculated_ratio = <span class="number">10</span> / <span class="number">0</span>
+<span class="keyword">except</span> <span class="function">ZeroDivisionError</span>:
+    <span class="keyword">print</span>(<span class="string">"Mathematical warning anomaly detected: Cannot divide values by zero!"</span>)</pre>
+            </div>
+
+            <div class="pedagogy-block mistake">
+                <div class="block-title">❌ Common Beginner Error</div>
+                Using raw, empty <code>except:</code> catch-all blocks without specifying an explicit error type. This hides unexpected logical issues and bugs, making your code incredibly difficult to debug later on.
+            </div>
+
+            <div class="pedagogy-block assignment">
+                <div class="block-title">📝 Day 8 Assignment Challenge</div>
+                Write a user input conversion script that prompts users for numerical strings, safely wrapping conversion attempts in a <code>ValueError</code> handling block to catch non-numeric inputs.
+            </div>
+        </div>
+
+        <div id="day9" class="content-section">
+            <h1>Day 9: OOP — Object-Oriented Blueprint Foundations</h1>
+            <p>Group variables and functions together into reusable objects that model how things work in the real world.</p>
+
+            <h2>1. Classes and Instance Objects</h2>
+            <div class="pedagogy-block analogy">
+                <div class="block-title">💡 Real-World Analogy</div>
+                A <strong>Class</strong> is like an original blueprint for an architectural property layout. An <strong>Object</strong> is the actual physical house built using that blueprint. You can build thousands of distinct houses (instances) from that single core layout blueprint design.
+            </div>
+
+            <div class="code-container">
+                <div class="code-header"><span>oop_basics.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><span class="keyword">class</span> <span class="function">Vehicle</span>:
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, make, model):
+        <span class="keyword">self</span>.make = make  <span class="comment"># Instance Variable attribute</span>
+        <span class="keyword">self</span>.model = model
+
+my_car = Vehicle(<span class="string">"Tesla"</span>, <span class="string">"Model 3"</span>)</pre>
+            </div>
+
+            <h3>Visual Memory Structure: Instance Binding</h3>
+            <div class="memory-visualizer">
+                <div class="mem-box variable">
+                    <div class="mem-label">Ref Pointer</div>
+                    <div class="mem-val">my_car</div>
+                </div>
+                <div class="mem-arrow">➡️</div>
+                <div class="mem-box object">
+                    <div class="mem-label">Vehicle Object Instantiation Space</div>
+                    <div class="mem-val">self.make: "Tesla"<br>self.model: "Model 3"</div>
+                </div>
+            </div>
+
+            <div class="pedagogy-block assignment">
+                <div class="block-title">📝 Day 9 Assignment Challenge</div>
+                Design a custom <code>Book</code> class containing attributes tracking title and author names. Instantiate two separate book object creations and print out their details.
+            </div>
+        </div>
+
+        <div id="day10" class="content-section">
+            <h1>Day 10: Advanced OOP & Mini Project</h1>
+            <p>Combine everything you've learned to build a functional, real-world application using inheritance and structured class objects.</p>
+
+            <h2>1. Inheritance</h2>
+            <p>Inheritance lets a new class reuse, extend, and adapt features from an existing class automatically.</p>
+
+            <div class="code-container">
+                <div class="code-header"><span>inheritance_demo.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><span class="keyword">class</span> <span class="function">User</span>:
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, name):
+        <span class="keyword">self</span>.name = name
+
+<span class="keyword">class</span> <span class="function">Administrator</span>(User): <span class="comment"># Inherits base attributes from User class</span>
+    <span class="keyword">def</span> <span class="function">erase_database</span>(<span class="keyword">self</span>):
+        <span class="keyword">print</span>(<span class="string">"System reset executed successfully."</span>)</pre>
+            </div>
+
+            <h2>2. Comprehensive Mini-Project: Student Management System</h2>
+            <p>Below is a production-grade structural blueprint implementation matching architectural patterns covering your complete 10-day journey.</p>
+
+            <div class="code-container">
+                <div class="code-header"><span>student_system.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><span class="keyword">class</span> <span class="function">Student</span>:
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, student_id, student_name):
+        <span class="keyword">self</span>.student_id = student_id
+        <span class="keyword">self</span>.student_name = student_name
+        <span class="keyword">self</span>.grades = []
+
+    <span class="keyword">def</span> <span class="function">add_grade</span>(<span class="keyword">self</span>, numeric_score):
+        <span class="keyword">self</span>.grades.append(numeric_score)
+
+    <span class="keyword">def</span> <span class="function">get_gpa</span>(<span class="keyword">self</span>):
+        <span class="keyword">if</span> <span class="keyword">not</span> <span class="keyword">self</span>.grades: <span class="keyword">return</span> <span class="number">0.0</span>
+        <span class="keyword">return</span> <span class="function">sum</span>(<span class="keyword">self</span>.grades) / <span class="function">len</span>(<span class="keyword">self</span>.grades)
+
+<span class="comment"># Instantiate runtime entities to verify code functionality</span>
+student_record = Student(<span class="number">101</span>, <span class="string">"Alex Mercer"</span>)
+student_record.add_grade(<span class="number">95</span>)
+student_record.add_grade(<span class="number">88</span>)
+<span class="keyword">print</span>(f<span class="string">"Student GPA Result: {student_record.get_gpa()}"</span>)</pre>
+            </div>
+            <button class="interactive-output-trigger" onclick="toggleOutput('out-day10')">Execute Student Management System</button>
+            <div id="out-day10" class="live-output-display">Student GPA Result: 91.5</div>
+
+            <div class="pedagogy-block assignment" style="background: rgba(56, 189, 248, 0.04); border-left-color: var(--accent);">
+                <div class="block-title">🎓 Final Graduation Project Challenge</div>
+                Extend this management application code framework by adding a feature to remove courses or safe file writing methods that store records into a local spreadsheet index text block.
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button id="prev-btn" class="nav-route-btn" onclick="navigatePage(-1)">⬅️ Previous Chapter</button>
+            <button id="next-btn" class="nav-route-btn" onclick="navigatePage(1)">Next Chapter ➡️</button>
+        </div>
+    </div>
+
+    <script>
+        // Structural definition data representing 10 days course layout blueprint mapping links
+        const courseModules = [
+            { id: "day1", title: "Day 1: Intro, Print & Variables" },
+            { id: "day2", title: "Day 2: Sequences & Strings" },
+            { id: "day3", title: "Day 3: Dicts & Set Concepts" },
+            { id: "day4", title: "Day 4: Conditional Control Flow" },
+            { id: "day5", title: "Day 5: Iteration loops & range" },
+            { id: "day6", title: "Day 6: Functional Definitions" },
+            { id: "day7", title: "Day 7: Native File Frameworks" },
+            { id: "day8", title: "Day 8: Robust Exception Blocks" },
+            { id: "day9", title: "Day 9: Basic OOP Concepts" },
+            { id: "day10", title: "Day 10: Advanced OOP & Mini Project" }
+        ];
+
+        let currentActivePageIndex = 0;
+
+        // Initialize state engine trackers and dynamically build sidebar elements
+        document.addEventListener("DOMContentLoaded", () => {
+            renderSidebarNavigationMenu();
+            switchChapter(0);
+            
+            // Wire up interactive real-time text query filters
+            document.getElementById("search-input").addEventListener("input", (e) => {
+                const searchKeyword = e.target.value.toLowerCase();
+                const navigationLinks = document.querySelectorAll(".sub-items li");
+                
+                navigationLinks.forEach(linkItem => {
+                    const textString = linkItem.innerText.toLowerCase();
+                    if(textString.includes(searchKeyword)) {
+                        linkItem.style.display = "block";
+                    } else {
+                        linkItem.style.display = "none";
+                    }
+                });
+            });
+        });
+
+        function renderSidebarNavigationMenu() {
+            const menuContainer = document.getElementById("nav-menu-container");
+            menuContainer.innerHTML = "";
+
+            const dayGroup = document.createElement("div");
+            dayGroup.className = "day-group";
+
+            const groupTitle = document.createElement("div");
+            groupTitle.className = "day-title";
+            groupTitle.innerHTML = "<span>📅 Course Curriculum Chapters</span><span>▼</span>";
+            dayGroup.appendChild(groupTitle);
+
+            const optionsList = document.createElement("ul");
+            optionsList.className = "sub-items";
+
+            courseModules.forEach((module, index) => {
+                const itemRow = document.createElement("li");
+                itemRow.innerHTML = `<a href="#" id="side-link-${index}" onclick="event.preventDefault(); switchChapter(${index});">${module.title}</a>`;
+                optionsList.appendChild(itemRow);
+            });
+
+            dayGroup.appendChild(optionsList);
+            menuContainer.appendChild(dayGroup);
+            
+            // Simple toggle animation logic for collapsible segments
+            groupTitle.addEventListener("click", () => {
+                optionsList.style.display = (optionsList.style.display === "none") ? "block" : "none";
+            });
+        }
+
+        function switchChapter(targetIndex) {
+            if (targetIndex < 0 || targetIndex >= courseModules.length) return;
+            
+            // Deactivate existing section panels
+            document.querySelectorAll(".content-section").forEach(viewPanel => viewPanel.classList.remove("active"));
+            document.querySelectorAll(".sub-items li a").forEach(link => link.classList.remove("active"));
+
+            // Activate new targeted index viewport pane
+            currentActivePageIndex = targetIndex;
+            const currentModuleId = courseModules[currentActivePageIndex].id;
+            
+            document.getElementById(currentModuleId).classList.add("active");
+            document.getElementById(`side-link-${targetIndex}`).classList.add("active");
+
+            // Update user progress metrics bar graph display UI element
+            const calculatedProgressPercent = ((targetIndex + 1) / courseModules.length) * 100;
+            document.getElementById("course-progress").style.width = `${calculatedProgressPercent}%`;
+
+            // Reset execution view visibility coordinates smoothly
+            document.getElementById("main-content").scrollTop = 0;
+
+            // Handle directional routing display updates
+            document.getElementById("prev-btn").style.visibility = (targetIndex === 0) ? "hidden" : "visible";
+            document.getElementById("next-btn").style.visibility = (targetIndex === courseModules.length - 1) ? "hidden" : "visible";
+        }
+
+        function navigatePage(directionOffset) {
+            switchChapter(currentActivePageIndex + directionOffset);
+        }
+
+        // Functional Utilities Supporting Interactive Live Course Code Blocks
+        function toggleOutput(elementId) {
+            const displayWindow = document.getElementById(elementId);
+            displayWindow.style.display = (displayWindow.style.display === "block") ? "none" : "block";
+        }
+
+        function copyCode(buttonElement) {
+            const codeBlockText = buttonElement.parentElement.nextElementSibling.innerText;
+            navigator.clipboard.writeText(codeBlockText).then(() => {
+                buttonElement.innerText = "Copied!";
+                setTimeout(() => { buttonElement.innerText = "Copy"; }, 2000);
+            });
+        }
+
+        // Logic controlling simulation ticks across localized Day 4 blocks
+        let activeStepTracker = 1;
+        function simulateDay4Step() {
+            document.getElementById(`d4s${activeStepTracker}`).classList.remove("active");
+            activeStepTracker = (activeStepTracker % 3) + 1;
+            document.getElementById(`d4s${activeStepTracker}`).classList.add("active");
+        }
+    </script>
+</body>
+</html>

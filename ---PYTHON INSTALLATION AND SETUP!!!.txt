@@ -1,0 +1,228 @@
+---PYTHON INSTALLATION AND SETUP!!!!---
+
+# Reference Videos & Official Documentation
+
+If you encounter any issues during installation or would like to watch the complete setup process, refer to the resources below.
+
+## 1. Official Microsoft VS Code Python Setup (Highly Recommended)
+
+This official tutorial by Microsoft covers:
+
+* Installing Python
+* Installing Visual Studio Code
+* Installing the Microsoft Python Extension
+* Selecting the Python Interpreter
+* Running your first Python program
+* Basic debugging
+
+**YouTube:**
+
+https://www.youtube.com/watch?v=D2cwvpJSBX4
+
+---
+
+## 2. Python Installation (Official Python Software Foundation)
+
+Download the latest version of Python from the official website.
+
+https://www.python.org/downloads/
+
+---
+
+## 3. Visual Studio Code Download
+
+Download the latest version of Visual Studio Code.
+
+https://code.visualstudio.com/
+
+---
+
+## 4. Official VS Code Python Documentation
+
+Microsoft's official guide for configuring Python in Visual Studio Code.
+
+Topics covered:
+
+* Installing Python
+* Installing the Python Extension
+* Selecting the Python Interpreter
+* Running Python Programs
+* IntelliSense
+* Debugging
+* Virtual Environments
+
+https://code.visualstudio.com/docs/languages/python
+
+---
+
+## 5. Official Python Tutorial
+
+If you wish to learn Python beyond the classroom, refer to the official Python tutorial.
+
+https://docs.python.org/3/tutorial/
+
+---
+
+# Frequently Asked Questions (FAQ)
+
+## Q1. How do I check if Python is installed?
+
+Open **Command Prompt** and run:
+
+```bash
+python --version
+```
+
+or
+
+```bash
+py --version
+```
+
+Expected Output:
+
+```text
+Python 3.x.x
+```
+
+---
+
+## Q2. How do I check if pip is installed?
+
+Run:
+
+```bash
+pip --version
+```
+
+Expected Output:
+
+```text
+pip xx.x.x
+```
+
+---
+
+## Q3. VS Code is showing "Select Python Interpreter". What should I do?
+
+1. Press **Ctrl + Shift + P**
+2. Search for:
+
+```text
+Python: Select Interpreter
+```
+
+3. Select the installed Python version.
+
+Alternatively,
+
+Click the Python version displayed at the **bottom-right corner** of VS Code and select the appropriate interpreter.
+
+---
+
+## Q4. I installed Python, but the `python` command is not working.
+
+Possible reasons:
+
+* Python was not added to PATH.
+* Command Prompt was opened before installation.
+* VS Code needs to be restarted.
+
+### Solution
+
+* Restart Command Prompt or VS Code.
+* Run:
+
+```bash
+py --version
+```
+
+If this works, Python is installed successfully.
+
+If neither command works, reinstall Python and ensure that **"Add Python to PATH"** is checked during installation.
+
+---
+
+## Q5. I cannot see the ▶ Run button in VS Code.
+
+Ensure that:
+
+* The file has a **.py** extension.
+* The Microsoft Python Extension is installed.
+* A Python Interpreter has been selected.
+* Restart VS Code if necessary.
+
+---
+
+## Q6. Which installation method should I choose?
+
+| Method                    | Recommended | Notes                                     |
+| ------------------------- | ----------- | ----------------------------------------- |
+| Official Python Installer | ✅ Yes       | Best option for learning and development. |
+| Microsoft Store           | ✅ Yes       | Easier installation for beginners.        |
+| Anaconda                  | ❌ No        | Not required for this course.             |
+
+---
+
+# Course Readiness Checklist
+
+| Task                                         | Status |
+| -------------------------------------------- | ------ |
+| Python Installed                             | ☐      |
+| `python --version` Working                   | ☐      |
+| `pip --version` Working                      | ☐      |
+| Visual Studio Code Installed                 | ☐      |
+| Microsoft Python Extension Installed         | ☐      |
+| Python Interpreter Selected                  | ☐      |
+| Created `hello.py`                           | ☐      |
+| Successfully Executed `print("Hello World")` | ☐      |
+
+---
+
+# First Python Program
+
+Create a file named:
+
+```text
+hello.py
+```
+
+Write the following code:
+
+```python
+print("Hello, World!")
+print("Welcome to Python Programming!")
+```
+
+Run the program using one of the following methods:
+
+* Click the **▶ Run** button in VS Code.
+* Right-click inside the editor and select **Run Python File in Terminal**.
+* Open the integrated terminal (`Ctrl + ``) and run:
+
+```bash
+python hello.py
+```
+
+or
+
+```bash
+py hello.py
+```
+
+Expected Output:
+
+```text
+Hello, World!
+Welcome to Python Programming!
+```
+
+---
+
+# Congratulations!
+
+Your Python development environment is now fully configured and ready.
+
+You are now prepared to begin the Python Basics course.
+
+Happy Coding! 🚀
